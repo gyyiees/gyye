@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Makan Apa Hari Ini?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #14213d;
+    --leaf: #2e7d4f;
+    --turmeric: #f2b705;
+    --mint: #eaf4ec;
+    --line: #c9dccd;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--mint);
+    color: var(--ink);
+    font-family: "Bricolage Grotesque", system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 32px 20px;
+  }
+  main { width: 100%; max-width: 560px; }
+  h1 { font-size: 1.1rem; font-weight: 500; margin: 0 0 24px; }
+  .stage {
+    background: var(--ink);
+    color: #fff;
+    border-radius: 20px;
+    padding: 40px 28px;
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+  }
+  .stage small { color: var(--turmeric); font-size: 1rem; }
+  #hasil {
+    font-size: clamp(2.6rem, 11vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  button {
+    font: inherit;
+    cursor: pointer;
+    border: 0;
+    border-radius: 12px;
+  }
+  #acak {
+    margin-top: 16px;
+    padding: 16px 20px;
+    width: 100%;
+    background: var(--turmeric);
+    color: var(--ink);
+    font-weight: 800;
+    font-size: 1.1rem;
+  }
+  #acak:disabled { opacity: .6; cursor: wait; }
+  :focus-visible { outline: 3px solid var(--leaf); outline-offset: 3px; }
+  section { margin-top: 32px; }
+  h2 { font-size: 1rem; margin: 0 0 10px; }
+  .tambah { display: flex; gap: 8px; }
+  input {
+    flex: 1;
+    font: inherit;
+    padding: 12px 14px;
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--ink);
+  }
+  .tambah button { background: var(--leaf); color: #fff; padding: 0 18px; font-weight: 500; }
+  ul { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  li {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 8px 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  li button { background: none; padding: 2px 8px; font-size: 1.1rem; color: var(--ink); }
+  ol { padding-left: 20px; margin: 0; }
+  ol li { all: unset; display: list-item; padding: 3px 0; }
+  .kosong { color: #5b6b5f; margin: 0; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Makan Apa Hari Ini?</h1>
+
+  <div class="stage" aria-live="polite">
+    <small id="sub">Bingung mau makan apa? Tekan tombol di bawah.</small>
+    <p id="hasil">?</p>
+  </div>
+  <button id="acak">Acak menu</button>
+
+  <section>
+    <h2>Tambah menu sendiri</h2>
+    <form class="tambah" id="form">
+      <input id="baru" placeholder="Contoh: Soto Lamongan" maxlength="30" aria-label="Nama menu baru">
+      <button type="submit">Tambah</button>
+    </form>
+    <ul id="daftar"></ul>
+  </section>
+
+  <section>
+    <h2>Riwayat hari ini</h2>
+    <p class="kosong" id="kosong">Belum ada. Acak dulu.</p>
+    <ol id="riwayat"></ol>
+  </section>
+</main>
+
+<script>
+  let menu = ["Nasi goreng", "Mie ayam", "Bakso", "Gado-gado", "Sate ayam", "Nasi padang", "Soto ayam", "Pecel lele", "Ayam geprek", "Bubur ayam"];
+  const hasil = document.getElementById("hasil");
+  const sub = document.getElementById("sub");
+  const tombol = document.getElementById("acak");
+  const daftar = document.getElementById("daftar");
+  const riwayat = document.getElementById("riwayat");
+  const kosong = document.getElementById("kosong");
+
+  function gambarDaftar() {
+    daftar.innerHTML = "";
+    menu.forEach((nama, i) => {
+      const li = document.createElement("li");
+      li.append(nama);
+      const hapus = document.createElement("button");
+      hapus.textContent = "×";
+      hapus.setAttribute("aria-label", "Hapus " + nama);
+      hapus.onclick = () => { menu.splice(i, 1); gambarDaftar(); };
+      li.append(hapus);
+      daftar.append(li);
+    });
+  }
+
+  tombol.onclick = () => {
+    if (menu.length === 0) {
+      sub.textContent = "Daftar menu kosong. Tambah dulu menunya.";
+      return;
+    }
+    tombol.disabled = true;
+    sub.textContent = "Mengacak...";
+    let n = 0;
+    const timer = setInterval(() => {
+      hasil.textContent = menu[Math.floor(Math.random() * menu.length)];
+      if (++n >= 15) {
+        clearInterval(timer);
+        const pilihan = menu[Math.floor(Math.random() * menu.length)];
+        hasil.textContent = pilihan;
+        sub.textContent = "Hari ini makan:";
+        const li = document.createElement("li");
+        li.textContent = pilihan;
+        riwayat.prepend(li);
+        kosong.hidden = true;
+        tombol.disabled = false;
+        tombol.textContent = "Acak lagi";
+      }
+    }, 80);
+  };
+
+  document.getElementById("form").onsubmit = (e) => {
+    e.preventDefault();
+    const input = document.getElementById("baru");
+    const nama = input.value.trim();
+    if (nama && !menu.includes(nama)) { menu.push(nama); gambarDaftar(); }
+    input.value = "";
+  };
+
+  gambarDaftar();
+</script>
+</body>
+</html>
